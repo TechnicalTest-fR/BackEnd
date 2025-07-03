@@ -1,21 +1,17 @@
-// backend/controllers/orderController.js
 const db = require('../models');
 const Order = db.Order;
 const Product = db.Product;
 const OrderProduct = db.OrderProduct;
 
-// Función auxiliar para calcular num_products y final_price
 const calculateOrderTotals = async (productsArray) => {
     let num_products = 0;
     let final_price = 0;
 
     if (productsArray && productsArray.length > 0) {
         for (const item of productsArray) {
-            // Asegurarse de que el precio unitario sea correcto, podría venir del frontend o buscarlo
-            // Para mayor seguridad, podrías buscar el precio del producto desde la DB
-            let unitPrice = item.price; // Asumimos que viene en el objeto del frontend
+            let unitPrice = item.price;
 
-            if (!unitPrice && item.id) { // Si no viene el precio, búscalo por el ID del producto
+            if (!unitPrice && item.id) {
                 const productInDb = await Product.findByPk(item.id, { attributes: ['price'] });
                 if (productInDb) {
                     unitPrice = productInDb.price;
@@ -34,11 +30,11 @@ const calculateOrderTotals = async (productsArray) => {
 exports.getOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
-            include: [{ // Incluye los productos asociados a la orden
+            include: [{
                 model: Product,
                 as: 'products',
-                through: { attributes: ['quantity', 'unit_price'] }, // Incluye atributos de la tabla intermedia
-                attributes: ['id', 'name'] // Atributos del producto que quieres
+                through: { attributes: ['quantity', 'unit_price'] },
+                attributes: ['id', 'name']
             }]
         });
         res.json(orders);
@@ -59,12 +55,11 @@ exports.getOrderById = async (req, res) => {
         });
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
-        // Formatear los productos para que sean consistentes con lo que espera el frontend
         const formattedOrder = order.toJSON();
         formattedOrder.products = formattedOrder.products.map(p => ({
             id: p.id,
             name: p.name,
-            price: parseFloat(p.OrderProduct.unit_price), // Usar el precio de la tabla intermedia
+            price: parseFloat(p.OrderProduct.unit_price),
             quantity: p.OrderProduct.quantity
         }));
 
@@ -94,25 +89,23 @@ exports.createOrder = async (req, res) => {
         });
 
         if (products && products.length > 0) {
-            // Preparar los datos para la tabla intermedia
             const orderProductsData = [];
             for (const prod of products) {
                 const productInDb = await Product.findByPk(prod.id, { attributes: ['price'] });
                 if (!productInDb) {
-                    // Considerar cómo manejar si un producto no existe
                     return res.status(400).json({ message: `Product with ID ${prod.id} not found.` });
                 }
                 orderProductsData.push({
                     order_id: newOrder.id,
                     product_id: prod.id,
                     quantity: prod.quantity,
-                    unit_price: productInDb.price // Usa el precio de la base de datos para consistencia
+                    unit_price: productInDb.price
                 });
             }
             await OrderProduct.bulkCreate(orderProductsData);
         }
 
-        const createdOrder = await exports.getOrderById(newOrder.id); // Obtener la orden con productos asociados
+        const createdOrder = await exports.getOrderById(newOrder.id);
         res.status(201).json(createdOrder);
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
@@ -130,14 +123,12 @@ exports.updateOrder = async (req, res) => {
         const currentOrder = await Order.findByPk(id);
         if (!currentOrder) return res.status(404).json({ message: 'Order not found.' });
 
-        // **Validación para Extra c: No editar órdenes completadas o canceladas**
         if (currentOrder.status === 'Completed' || currentOrder.status === 'Cancelled') {
             return res.status(403).json({ message: 'Cannot edit a completed or cancelled order.' });
         }
 
         const { num_products, final_price } = await calculateOrderTotals(products);
 
-        // Actualizar la orden principal
         await currentOrder.update({
             order_number,
             order_date,
@@ -146,11 +137,9 @@ exports.updateOrder = async (req, res) => {
             status
         });
 
-        // Actualizar los productos de la orden:
-        // 1. Eliminar todos los productos existentes de esta orden
+
         await OrderProduct.destroy({ where: { order_id: id } });
 
-        // 2. Insertar los nuevos productos (o actualizados)
         if (products && products.length > 0) {
             const orderProductsData = [];
             for (const prod of products) {
@@ -162,7 +151,7 @@ exports.updateOrder = async (req, res) => {
                     order_id: id,
                     product_id: prod.id,
                     quantity: prod.quantity,
-                    unit_price: productInDb.price // Usar el precio de la base de datos
+                    unit_price: productInDb.price
                 });
             }
             await OrderProduct.bulkCreate(orderProductsData);
@@ -184,12 +173,11 @@ exports.deleteOrder = async (req, res) => {
         const currentOrder = await Order.findByPk(id);
         if (!currentOrder) return res.status(404).json({ message: 'Order not found.' });
 
-        // **Validación para Extra c: No eliminar órdenes completadas o canceladas**
         if (currentOrder.status === 'Completed' || currentOrder.status === 'Cancelled') {
             return res.status(403).json({ message: 'Cannot delete a completed or cancelled order.' });
         }
 
-        const deletedRows = await Order.destroy({ where: { id } }); // Sequelize eliminará automáticamente OrderProduct debido a `ON DELETE CASCADE`
+        const deletedRows = await Order.destroy({ where: { id } });
         if (deletedRows === 0) return res.status(404).json({ message: 'Order not found' });
         res.json({ message: 'Order deleted successfully' });
     } catch (error) {
@@ -197,7 +185,7 @@ exports.deleteOrder = async (req, res) => {
     }
 };
 
-exports.changeOrderStatus = async (req, res) => { // Extra b
+exports.changeOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
@@ -210,7 +198,6 @@ exports.changeOrderStatus = async (req, res) => { // Extra b
         const currentOrder = await Order.findByPk(id);
         if (!currentOrder) return res.status(404).json({ message: 'Order not found.' });
 
-        // **Validación para Extra c: No cambiar estado de órdenes ya completadas/canceladas a otro estado**
         if ((currentOrder.status === 'Completed' && status !== 'Completed') ||
             (currentOrder.status === 'Cancelled' && status !== 'Cancelled')) {
             return res.status(403).json({ message: `Cannot change status of an order that is already ${currentOrder.status}.` });

@@ -1,24 +1,21 @@
-// backend/swaggerDef.js
 const swaggerJSDoc = require('swagger-jsdoc');
 
-// Definición de las opciones de Swagger/OpenAPI
 const options = {
   definition: {
-    openapi: '3.0.0', // Versión de OpenAPI
+    openapi: '3.0.0',
     info: {
-      title: 'API de Gestión de Pedidos y Productos', // Título de tu API
-      version: '1.0.0', // Versión de tu API
+      title: 'API de Gestión de Pedidos y Productos',
+      version: '1.0.0',
       description: 'Documentación de la API para la gestión de pedidos y productos, construida con Node.js, Express y Sequelize.',
     },
     servers: [
       {
-        url: 'http://localhost:5000/api', // La URL base donde están tus endpoints de la API
+        url: 'http://localhost:5000/api', 
         description: 'Servidor de Desarrollo Local',
       },
     ],
     components: {
       schemas: {
-        // --- Definición del esquema para el modelo Product ---
         Product: {
           type: 'object',
           required: ['name', 'price'],
@@ -35,7 +32,7 @@ const options = {
             },
             price: {
               type: 'number',
-              format: 'float', // Usar float para números decimales
+              format: 'float',
               description: 'Precio del producto',
               example: 1800.00
             },
@@ -58,7 +55,6 @@ const options = {
             }
           },
         },
-        // --- Definición del esquema para el modelo Order ---
         Order: {
             type: 'object',
             required: ['order_number', 'order_date', 'status'],
@@ -75,7 +71,7 @@ const options = {
                 },
                 order_date: {
                     type: 'string',
-                    format: 'date', // Solo fecha
+                    format: 'date',
                     description: 'Fecha de la orden (YYYY-MM-DD)',
                     example: '2025-07-02'
                 },
@@ -92,7 +88,7 @@ const options = {
                 },
                 status: {
                     type: 'string',
-                    enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'], // Valores permitidos
+                    enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'], 
                     description: 'Estado actual de la orden',
                     example: 'Pending'
                 },
@@ -106,12 +102,12 @@ const options = {
                     format: 'date-time',
                     example: '2025-07-02T10:00:00Z'
                 },
-                products: { // Representa los productos asociados a la orden
+                products: { 
                     type: 'array',
                     items: {
-                        allOf: [ // Combina el esquema de Product con propiedades de la relación
-                            { $ref: '#/components/schemas/Product' }, // Referencia al esquema base de Producto
-                            { type: 'object', properties: { // Propiedades adicionales de la tabla intermedia OrderProduct
+                        allOf: [
+                            { $ref: '#/components/schemas/Product' },
+                            { type: 'object', properties: {
                                 quantity: { type: 'integer', example: 1 },
                                 unit_price: { type: 'number', format: 'float', example: 1800.00 }
                             }}

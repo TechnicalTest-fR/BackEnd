@@ -1,7 +1,6 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Tabla 'products'
     await queryInterface.createTable('products', {
       id: {
         allowNull: false,
@@ -34,7 +33,6 @@ module.exports = {
       }
     });
 
-    // Tabla 'orders' - PRESTA ESPECIAL ATENCIÓN A ESTA SECCIÓN
     await queryInterface.createTable('orders', {
       id: {
         allowNull: false,
@@ -48,18 +46,18 @@ module.exports = {
         unique: true
       },
       order_date: {
-        type: Sequelize.DATE, // <-- CAMBIADO a Sequelize.DATE
+        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('NOW()') // <-- CAMBIADO a NOW()
+        defaultValue: Sequelize.literal('NOW()')
       },
       num_products: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
-        allowNull: false // Asegúrate de que no sea nulo si tiene un default
+        allowNull: false
       },
       final_price: {
         type: Sequelize.DECIMAL(10, 2),
-        defaultValue: 0.00, // Asegúrate de que no sea nulo si tiene un default
+        defaultValue: 0.00,
         allowNull: false
       },
       status: {
@@ -79,13 +77,12 @@ module.exports = {
       }
     });
 
-    // Tabla 'order_products' (Tabla intermedia)
     await queryInterface.createTable('order_products', {
       order_id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         references: {
-          model: 'orders', // Nombre de la tabla
+          model: 'orders',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -95,7 +92,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         references: {
-          model: 'products', // Nombre de la tabla
+          model: 'products',
           key: 'id'
         },
         onUpdate: 'CASCADE',

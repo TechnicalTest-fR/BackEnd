@@ -1,10 +1,9 @@
-// backend/controllers/productController.js
-const db = require('../models'); // Importa todos los modelos de Sequelize
-const Product = db.Product; // Accede al modelo Product
+const db = require('../models');
+const Product = db.Product;
 
 exports.getProducts = async (req, res) => {
     try {
-        const products = await Product.findAll(); // Sequelize: SELECT * FROM products
+        const products = await Product.findAll();
         res.json(products);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -13,7 +12,7 @@ exports.getProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id); // Sequelize: SELECT * FROM products WHERE id = ?
+        const product = await Product.findByPk(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
         res.json(product);
     } catch (error) {
@@ -23,7 +22,7 @@ exports.getProductById = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        const newProduct = await Product.create(req.body); // Sequelize: INSERT INTO products (...) VALUES (...)
+        const newProduct = await Product.create(req.body); 
         res.status(201).json(newProduct);
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
@@ -35,11 +34,11 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     try {
-        const [updatedRows] = await Product.update(req.body, { // Sequelize: UPDATE products SET ... WHERE id = ?
+        const [updatedRows] = await Product.update(req.body, { 
             where: { id: req.params.id }
         });
         if (updatedRows === 0) return res.status(404).json({ message: 'Product not found' });
-        const updatedProduct = await Product.findByPk(req.params.id); // Obtener el producto actualizado
+        const updatedProduct = await Product.findByPk(req.params.id);
         res.json(updatedProduct);
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
@@ -51,7 +50,7 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
-        const deletedRows = await Product.destroy({ // Sequelize: DELETE FROM products WHERE id = ?
+        const deletedRows = await Product.destroy({
             where: { id: req.params.id }
         });
         if (deletedRows === 0) return res.status(404).json({ message: 'Product not found' });
