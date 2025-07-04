@@ -18,7 +18,7 @@ const options = {
       schemas: {
         Product: {
           type: 'object',
-          required: ['name', 'price'],
+          required: ['name', 'unit_price'],
           properties: {
             id: {
               type: 'integer',
@@ -30,7 +30,7 @@ const options = {
               description: 'Nombre del producto',
               example: 'Laptop Dell XPS 15'
             },
-            price: {
+            unit_price: {
               type: 'number',
               format: 'float',
               description: 'Precio del producto',
@@ -124,7 +124,7 @@ const options = {
                 order_number: { type: 'string', example: 'ORD-2025-001' },
                 order_date: { type: 'string', format: 'date', example: '2025-07-02' },
                 status: { type: 'string', enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'], example: 'Pending' },
-                products: { // Array de productos a asociar con la orden
+                products: {
                     type: 'array',
                     items: {
                         type: 'object',

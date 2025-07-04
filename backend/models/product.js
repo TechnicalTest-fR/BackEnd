@@ -10,14 +10,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true
     },
-    price: {
+    unit_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    }
   }, {
     timestamps: true,
     tableName: 'products'

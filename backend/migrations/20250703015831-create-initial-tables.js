@@ -13,10 +13,6 @@ module.exports = {
         allowNull: false,
         unique: true
       },
-      price: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: false
-      },
       description: {
         type: Sequelize.TEXT,
         allowNull: true

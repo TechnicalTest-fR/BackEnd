@@ -70,18 +70,15 @@ router.get('/:id', productController.getProductById);
  *             type: object
  *             required:
  *               - name
- *               - price
+ *               - unit_price
  *             properties:
  *               name:
  *                 type: string
  *                 example: Nuevo Producto XYZ
- *               price:
+ *               unit_price:
  *                 type: number
  *                 format: float
  *                 example: 99.99
- *               description:
- *                 type: string
- *                 example: Descripción detallada del nuevo producto.
  *     responses:
  *       201:
  *         description: Producto creado exitosamente.
@@ -119,13 +116,10 @@ router.post('/', productController.createProduct);
  *               name:
  *                 type: string
  *                 example: Producto Actualizado
- *               price:
+ *               unit_price:
  *                 type: number
  *                 format: float
  *                 example: 120.00
- *               description:
- *                 type: string
- *                 example: Nueva descripción del producto.
  *     responses:
  *       200:
  *         description: Producto actualizado exitosamente.
