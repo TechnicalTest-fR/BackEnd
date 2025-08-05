@@ -7,10 +7,27 @@ const { sequelize, Order, Product, Supplier, OrderProduct } = require('./models'
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 
-// --- RUTAS SIMILARES A json-server ---
+// --- Database Connection Check ---
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ Conexión exitosa con la base de datos');
+  })
+  .catch((err) => {
+    console.error('❌ No se pudo conectar con la base de datos:', err);
+  });
+
+// --- API Routes ---
+
+// Ruta de bienvenida (la que faltaba)
+// Responde a la solicitud GET en la URL raíz (http://localhost:5000/)
+app.get('/', (req, res) => {
+  res.status(200).send('¡Bienvenido a la API del backend de OrderFlow!');
+});
+
 // GET /orders
 app.get('/orders', async (req, res) => {
   try {
@@ -102,19 +119,13 @@ app.post('/orders', async (req, res) => {
   }
 });
 
+// --- Server Startup ---
+
 // Sincronizar Sequelize y levantar el servidor
 sequelize.sync({ alter: false }).then(() => {
   app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });
 }).catch(err => {
-  console.error('No se pudo conectar con la base de datos:', err);
+  console.error('No se pudo conectar con la base de datos y levantar el servidor:', err);
 });
-
-sequelize.authenticate()
-  .then(() => {
-    console.log('✅ Conexión exitosa con la base de datos');
-  })
-  .catch((err) => {
-    console.error('❌ No se pudo conectar con la base de datos:', err);
-  });

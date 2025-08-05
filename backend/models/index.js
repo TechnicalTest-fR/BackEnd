@@ -26,7 +26,7 @@ const OrderProduct = sequelize.define('OrderProduct', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  supplier_id: { // <-- Añadir esta propiedad
+  supplier_id: {
     type: DataTypes.INTEGER,
     allowNull: true
   }
@@ -39,8 +39,15 @@ Order.belongsToMany(Product, { through: OrderProduct, foreignKey: 'order_id' });
 Product.belongsToMany(Order, { through: OrderProduct, foreignKey: 'product_id' });
 
 // Relación uno a muchos entre Supplier y Product
-Supplier.hasMany(Product, { foreignKey: 'supplier_id' });
-Product.belongsTo(Supplier, { foreignKey: 'supplier_id' });
+// ¡Esta sección fue corregida para incluir los aliases!
+Supplier.hasMany(Product, { 
+  foreignKey: 'supplier_id',
+  as: 'products' // Alias para la relación inversa (Un proveedor tiene muchos productos)
+});
+Product.belongsTo(Supplier, { 
+  foreignKey: 'supplier_id',
+  as: 'supplier' // Este alias es el que el `include: ['supplier']` busca en server.js
+});
 
 // Exportar todo para que esté disponible en el resto de la aplicación
 module.exports = {
