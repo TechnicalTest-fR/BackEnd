@@ -1,59 +1,50 @@
-// Este archivo centraliza la configuración de Sequelize, la conexión y las relaciones.
+// models/index.js
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const basename = path.basename(__filename);
+const db = {};
 
-const { Sequelize, DataTypes } = require('sequelize');
-
-// Configuración de la conexión a la base de datos (usando variables de entorno).
-const sequelize = new Sequelize({
-  dialect: 'mysql',
-  host: process.env.DB_HOST,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
-
-// Importar los modelos definidos
-const Order = require('./order')(sequelize, DataTypes);
-const Product = require('./product')(sequelize, DataTypes);
-const Supplier = require('./supplier')(sequelize, DataTypes);
-
-// Definir la tabla intermedia para la relación de muchos a muchos entre Order y Product
-const OrderProduct = sequelize.define('OrderProduct', {
-  quantity: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  unit_price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
-  },
-  supplier_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
+// Configuración de la conexión a la base de datos usando variables de entorno
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'mysql',
+    logging: console.log,
   }
-});
+);
 
+// Cargar todos los modelos de la carpeta
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js' &&
+      file.indexOf('.test.js') === -1
+    );
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
 
-// Definir las asociaciones entre los modelos
-// Relación muchos a muchos entre Order y Product
-Order.belongsToMany(Product, { through: OrderProduct, foreignKey: 'order_id' });
-Product.belongsToMany(Order, { through: OrderProduct, foreignKey: 'product_id' });
+// --- TODAS LAS ASOCIACIONES EN UN SOLO LUGAR ---
+// 1. Relación uno a muchos: Supplier tiene muchos Products
+db.Supplier.hasMany(db.Product, { foreignKey: 'supplier_id', as: 'supplierProducts' });
+db.Product.belongsTo(db.Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 
-// Relación uno a muchos entre Supplier y Product
-// ¡Esta sección fue corregida para incluir los aliases!
-Supplier.hasMany(Product, { 
-  foreignKey: 'supplier_id',
-  as: 'products' // Alias para la relación inversa (Un proveedor tiene muchos productos)
-});
-Product.belongsTo(Supplier, { 
-  foreignKey: 'supplier_id',
-  as: 'supplier' // Este alias es el que el `include: ['supplier']` busca en server.js
-});
+// 2. Relación muchos a muchos: Order y Product a través de OrderProduct
+db.Order.belongsToMany(db.Product, { through: db.OrderProduct, foreignKey: 'order_id', as: 'products' });
+db.Product.belongsToMany(db.Order, { through: db.OrderProduct, foreignKey: 'product_id', as: 'orders' });
 
-// Exportar todo para que esté disponible en el resto de la aplicación
-module.exports = {
-  sequelize,
-  Order,
-  Product,
-  Supplier,
-  OrderProduct
-};
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
