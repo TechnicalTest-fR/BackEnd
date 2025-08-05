@@ -1,10 +1,15 @@
+'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const OrderProduct = sequelize.define('OrderProduct', {
+  class OrderProduct extends Model {}
+  
+  OrderProduct.init({
     order_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       references: {
-        model: 'orders',
+        model: 'Orders',
         key: 'id'
       }
     },
@@ -12,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       references: {
-        model: 'products',
+        model: 'Products',
         key: 'id'
       }
     },
@@ -23,10 +28,20 @@ module.exports = (sequelize, DataTypes) => {
     unit_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
+    },
+    supplier_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'Suppliers',
+        key: 'id'
+      }
     }
   }, {
+    sequelize,
+    modelName: 'OrderProduct',
     timestamps: false,
-    tableName: 'orderproducts'
+    tableName: 'OrderProducts' // Correcting the table name for consistency
   });
 
   return OrderProduct;
